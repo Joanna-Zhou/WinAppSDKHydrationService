@@ -18,13 +18,14 @@ namespace winrt::HydrationApp::implementation
         winrt::hstring CancellationOutputText() { return m_cancellationOutputText; };
         void CancellationOutputText(winrt::hstring v) { m_cancellationOutputText = v; m_propertyChanged(*this, Microsoft::UI::Xaml::Data::PropertyChangedEventArgs{ L"CancellationOutputText" }); };
 
-        void StartButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
+        Windows::Foundation::IAsyncAction StartButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void CancelButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
 
         winrt::event_token PropertyChanged(Microsoft::UI::Xaml::Data::PropertyChangedEventHandler const& handler) { return m_propertyChanged.add(handler); };
         void PropertyChanged(winrt::event_token const& token) { m_propertyChanged.remove(token); };
 
     private:
+        Windows::Foundation::IAsyncAction HydrateFileAsync(std::wstring_view filePath);
         void HydrateFile(std::wstring_view filePath);
         void CancelHydration();
 
@@ -37,7 +38,10 @@ namespace winrt::HydrationApp::implementation
         bool m_isHydrated = false;
         wil::unique_hfile m_placeholder;
         OVERLAPPED m_overlappedHydration = {};
+
         winrt::event<Microsoft::UI::Xaml::Data::PropertyChangedEventHandler> m_propertyChanged;
+
+        winrt::apartment_context m_uiThread;
     };
 }
 

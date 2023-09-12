@@ -28,3 +28,14 @@
 #include <wil/cppwinrt_helpers.h>
 
 //#include <wil/resource.h>
+
+extern __inline int __cdecl MyLog(LPCSTR FmtString, ...)
+{
+    va_list arg_list;
+    va_start(arg_list, FmtString);
+    char OutputString[10240] = { 0 };
+
+    int i = _vsnprintf_s(OutputString, 10239, FmtString, arg_list);
+    OutputDebugStringA(OutputString);
+    return i;
+}
