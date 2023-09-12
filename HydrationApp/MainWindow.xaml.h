@@ -4,9 +4,7 @@
 #pragma once
 
 #include "MainWindow.g.h"
-
-//#include <winrt/Microsoft.UI.Xaml.Data.h>
-//namespace WUXD = winrt::Microsoft::UI::Xaml::Data;
+#include <wil/resource.h>
 
 namespace winrt::HydrationApp::implementation
 {
@@ -14,27 +12,32 @@ namespace winrt::HydrationApp::implementation
     {
         MainWindow();
 
-        winrt::hstring OutputText() { return m_outputText; };
-        void OutputText(winrt::hstring v) { m_outputText = v; m_propertyChanged(*this, Microsoft::UI::Xaml::Data::PropertyChangedEventArgs{ L"OutputText" });};
+        winrt::hstring HydrationOutputText() { return m_hydrationOutputText; };
+        void HydrationOutputText(winrt::hstring v) { m_hydrationOutputText = v; m_propertyChanged(*this, Microsoft::UI::Xaml::Data::PropertyChangedEventArgs{ L"HydrationOutputText" });};
+
+        winrt::hstring CancellationOutputText() { return m_cancellationOutputText; };
+        void CancellationOutputText(winrt::hstring v) { m_cancellationOutputText = v; m_propertyChanged(*this, Microsoft::UI::Xaml::Data::PropertyChangedEventArgs{ L"CancellationOutputText" }); };
 
         void StartButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void CancelButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
-
-        void HydrateFile(std::wstring_view filePath);
-        //WF::IAsyncOperation<bool> HydrateFileAsync(std::wstring_view filePath);
 
         winrt::event_token PropertyChanged(Microsoft::UI::Xaml::Data::PropertyChangedEventHandler const& handler) { return m_propertyChanged.add(handler); };
         void PropertyChanged(winrt::event_token const& token) { m_propertyChanged.remove(token); };
 
     private:
-        winrt::hstring m_outputText = L"";
+        void HydrateFile(std::wstring_view filePath);
+        void CancelHydration();
+
+        inline void PrintHydrationOutput(winrt::hstring newLine) { HydrationOutputText(m_hydrationOutputText + L"\n" + newLine); }
+        inline void PrintCancellationOutput(winrt::hstring newLine) { CancellationOutputText(m_cancellationOutputText + L"\n" + newLine); }
+        
+        winrt::hstring m_hydrationOutputText = L"";
+        winrt::hstring m_cancellationOutputText = L"";
+        
         bool m_isHydrated = false;
-        //wil::unique_hfile m_placeholder;
-
-        inline void PrintOutputLine(winrt::hstring newLine) { OutputText(m_outputText + L"\n" + newLine); }
-
+        wil::unique_hfile m_placeholder;
+        OVERLAPPED m_overlappedHydration = {};
         winrt::event<Microsoft::UI::Xaml::Data::PropertyChangedEventHandler> m_propertyChanged;
-
     };
 }
 

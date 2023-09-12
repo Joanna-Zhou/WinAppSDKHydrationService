@@ -27,75 +27,95 @@ namespace winrt::HydrationApp::implementation
 
     void MainWindow::StartButton_Click(IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        StartButton().Content(box_value(L"Hydrating"));
+        StartButton().IsEnabled(false);
 
         HydrateFile(FilePath().Text());
 
-        StartButton().Content(box_value(L"Start Hydration"));
+        StartButton().IsEnabled(true);
     }
 
     void MainWindow::CancelButton_Click(IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        CancelButton().Content(box_value(L"Cancelling"));
+        CancelButton().IsEnabled(false);
 
-        //CancelButton().Content(box_value(L"Clicked"));
+        CancelHydration();
 
-        CancelButton().Content(box_value(L"Cancelling"));
+        CancelButton().IsEnabled(true);
     }
 
     void MainWindow::HydrateFile(std::wstring_view filePath)
     {
-        PrintOutputLine(L"=== Starting ===");
+        PrintHydrationOutput(L"=== Starting ===");
         m_isHydrated = false;
 
-        winrt::handle placeholder(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
-        //m_placeholder.reset(CreateFile(filePath.data(), 0, FILE_SHARE_VALID_FLAGS, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr));
+        //winrt::handle placeholder(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
+        m_placeholder.reset(CreateFile(filePath.data(), 0, FILE_SHARE_VALID_FLAGS, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr));
 
-        if (placeholder.get() == INVALID_HANDLE_VALUE)
+        if (m_placeholder.get() == INVALID_HANDLE_VALUE)
         {
             _com_error err = GetLastError();
             LPCTSTR errMsg = err.ErrorMessage();
-            PrintOutputLine(winrt::to_hstring(errMsg));
+            PrintHydrationOutput(winrt::to_hstring(errMsg));
         }
         else
         {
-            PrintOutputLine(L"Successfully got placeholder...");
+            PrintHydrationOutput(L"Successfully got placeholder");
             LARGE_INTEGER offset;
             offset.QuadPart = 0;
             LARGE_INTEGER lengthOfEntireFile;
             lengthOfEntireFile.QuadPart = -1;
 
-            PrintOutputLine(L"Sending request...");
-            auto result = CfHydratePlaceholder(placeholder.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, NULL);
+            PrintHydrationOutput(L"Sending request");
+            auto result = CfHydratePlaceholder(m_placeholder.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, NULL);
 
-            //PrintOutputLine(L"HydrateFile: getting result...");
-
-            //m_placeholder.close();
+            // Initialize the overlapped event. This event is freed when the
+            // hydration completes and has the same scope as m_overlappedHydration.
+            wil::unique_event_nothrow overlappedEvent;
+            if (overlappedEvent.try_create(wil::EventOptions::ManualReset, nullptr))
+            {
+                ZeroMemory(&m_overlappedHydration, sizeof(OVERLAPPED));
+                m_overlappedHydration.hEvent = overlappedEvent.get();
+                PrintHydrationOutput(L"Saving overlappedHydration");
+            }
+            else
+            {
+                PrintHydrationOutput(L"!!!Couldn't create overlappedHydration");
+            }
 
             _com_error err(result);
             LPCTSTR errMsg = err.ErrorMessage();
-            PrintOutputLine(winrt::to_hstring(errMsg));
+            PrintHydrationOutput(winrt::to_hstring(errMsg));
 
             if (SUCCEEDED(result))
             {
-                PrintOutputLine(L"=== Successful ===\n");
+                PrintHydrationOutput(L"=== Successful ===\n");
                 m_isHydrated = true;
                 return;
             }
         }
 
-        PrintOutputLine(L"=== Failed ===\n");
+        PrintHydrationOutput(L"=== Failed ===\n");
 
         return;
     }
 
-    //WF::IAsyncOperation<bool> MainWindow::HydrateFileAsync(std::wstring_view filePath)
-    //{
-    //    /* Resume on a background thread here since HydrateFile()
-    //     * will block the calling thread (ie. it will cause UI to hang). */
-    //     // No need for get_strong because this is a free function
-    //    co_await winrt::resume_background();
+    void MainWindow::CancelHydration()
+    {
+        PrintCancellationOutput(L"=== Starting ===");
 
-    //    co_return HydrateFile(filePath);
-    //}
+        if (CancelIoEx(m_placeholder.get(), &m_overlappedHydration))
+        {
+            PrintHydrationOutput(L"=== Successful ===\n");
+        }
+        else
+        {
+            _com_error err = GetLastError();
+            LPCTSTR errMsg = err.ErrorMessage();
+            PrintCancellationOutput(winrt::to_hstring(errMsg));
+        }
+
+        //RETURN_LAST_ERROR_IF_FALSE(CancelIoEx(m_placeholder.get(), &m_overlappedHydration));
+
+        PrintCancellationOutput(L"=== Failed ===\n");
+    }
 }

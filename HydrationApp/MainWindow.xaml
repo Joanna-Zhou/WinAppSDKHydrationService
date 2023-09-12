@@ -29,7 +29,7 @@
             HorizontalAlignment="Stretch"
             FontSize="16"
             PlaceholderText="Full file path (make sure you 'free up space' first)"
-            Text="C:\Users\yizzho\OneDrive - Microsoft\TEST\kitty.jpg"
+            Text="C:\Users\yizzho\OneDrive - Microsoft\TEST\20221214100759.jpg"
             TextWrapping="Wrap" />
         <Grid
             Grid.Row="1"
@@ -85,14 +85,14 @@
                     VerticalContentAlignment="Center"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
-                    <TextBlock Text="{x:Bind OutputText, Mode=OneWay}" TextWrapping="NoWrap" />
+                    <TextBlock Text="{x:Bind HydrationOutputText, Mode=OneWay}" TextWrapping="NoWrap" />
                 </ScrollViewer>
             </StackPanel>
 
             <StackPanel
                 Grid.Column="1"
                 Padding="4"
-                HorizontalAlignment="Left"
+                HorizontalAlignment="Right"
                 BorderThickness="1"
                 Orientation="Vertical"
                 Spacing="4">
@@ -105,7 +105,7 @@
                     VerticalContentAlignment="Center"
                     HorizontalScrollBarVisibility="Auto"
                     VerticalScrollBarVisibility="Auto">
-                    <TextBlock Text=" " TextWrapping="NoWrap" />
+                    <TextBlock Text="{x:Bind CancellationOutputText, Mode=OneWay}" TextWrapping="NoWrap" />
                 </ScrollViewer>
             </StackPanel>
         </Grid>
