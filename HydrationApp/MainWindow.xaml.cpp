@@ -7,13 +7,13 @@
 #include "MainWindow.g.cpp"
 #endif
 
-//#include <bcrypt.h>
-//#include <cfapi.h>
-
-//#include <winrt/Microsoft.UI.Xaml.Input.h>
+#include <bcrypt.h>
+#include <cfapi.h>
+#include <comdef.h>
 
 using namespace winrt;
-using namespace Microsoft::UI::Xaml;
+
+#define FILE_SHARE_VALID_FLAGS 0x00000007
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -25,46 +25,68 @@ namespace winrt::HydrationApp::implementation
         InitializeComponent();
     }
 
-    void MainWindow::StartButton_Click(IInspectable const&, RoutedEventArgs const&)
+    void MainWindow::StartButton_Click(IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
         StartButton().Content(box_value(L"Hydrating"));
 
         HydrateFile(FilePath().Text());
 
-        StartButton().Content(box_value(L"Hydrate file"));
+        StartButton().Content(box_value(L"Start Hydration"));
     }
 
-    void MainWindow::CancelButton_Click(IInspectable const&, RoutedEventArgs const&)
+    void MainWindow::CancelButton_Click(IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        StartButton().Content(box_value(L"Cancelling"));
+        CancelButton().Content(box_value(L"Cancelling"));
 
         //CancelButton().Content(box_value(L"Clicked"));
 
-        StartButton().Content(box_value(L"Cancelling"));
+        CancelButton().Content(box_value(L"Cancelling"));
     }
 
-    bool MainWindow::HydrateFile(std::wstring_view filePath)
+    void MainWindow::HydrateFile(std::wstring_view filePath)
     {
-        PrintOutputLine(L"HydrateFile: starting...");
-        winrt::handle placeholder(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
+        PrintOutputLine(L"=== Starting ===");
+        m_isHydrated = false;
 
-        if (placeholder.get() != INVALID_HANDLE_VALUE)
+        winrt::handle placeholder(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
+        //m_placeholder.reset(CreateFile(filePath.data(), 0, FILE_SHARE_VALID_FLAGS, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr));
+
+        if (placeholder.get() == INVALID_HANDLE_VALUE)
         {
+            _com_error err = GetLastError();
+            LPCTSTR errMsg = err.ErrorMessage();
+            PrintOutputLine(winrt::to_hstring(errMsg));
+        }
+        else
+        {
+            PrintOutputLine(L"Successfully got placeholder...");
             LARGE_INTEGER offset;
             offset.QuadPart = 0;
             LARGE_INTEGER lengthOfEntireFile;
             lengthOfEntireFile.QuadPart = -1;
 
-            //auto result = CfHydratePlaceholder(placeholder.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, NULL);
+            PrintOutputLine(L"Sending request...");
+            auto result = CfHydratePlaceholder(placeholder.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, NULL);
 
-            //placeholder.close();
+            //PrintOutputLine(L"HydrateFile: getting result...");
 
-            //return (SUCCEEDED(result));
+            //m_placeholder.close();
+
+            _com_error err(result);
+            LPCTSTR errMsg = err.ErrorMessage();
+            PrintOutputLine(winrt::to_hstring(errMsg));
+
+            if (SUCCEEDED(result))
+            {
+                PrintOutputLine(L"=== Successful ===\n");
+                m_isHydrated = true;
+                return;
+            }
         }
 
-        PrintOutputLine(L"HydrateFile: failed.");
+        PrintOutputLine(L"=== Failed ===\n");
 
-        return false;
+        return;
     }
 
     //WF::IAsyncOperation<bool> MainWindow::HydrateFileAsync(std::wstring_view filePath)

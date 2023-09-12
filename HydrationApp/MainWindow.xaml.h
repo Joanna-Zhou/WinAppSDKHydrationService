@@ -20,15 +20,16 @@ namespace winrt::HydrationApp::implementation
         void StartButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
         void CancelButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
 
-        bool HydrateFile(std::wstring_view filePath);
+        void HydrateFile(std::wstring_view filePath);
         //WF::IAsyncOperation<bool> HydrateFileAsync(std::wstring_view filePath);
 
         winrt::event_token PropertyChanged(Microsoft::UI::Xaml::Data::PropertyChangedEventHandler const& handler) { return m_propertyChanged.add(handler); };
         void PropertyChanged(winrt::event_token const& token) { m_propertyChanged.remove(token); };
 
     private:
-        winrt::hstring m_filePath = L"C:/Users/yizzho/OneDrive - Microsoft/Pictures/TestingPhotos/Video Projects";
-        winrt::hstring m_outputText = L"Placeholder";
+        winrt::hstring m_outputText = L"";
+        bool m_isHydrated = false;
+        //wil::unique_hfile m_placeholder;
 
         inline void PrintOutputLine(winrt::hstring newLine) { OutputText(m_outputText + L"\n" + newLine); }
 

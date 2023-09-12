@@ -13,22 +13,23 @@
     </Window.SystemBackdrop>
 
     <Grid
-        Width="480"
+        Width="560"
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
         RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <TextBox
             x:Name="FilePath"
             Grid.Row="0"
-            Width="480"
+            HorizontalAlignment="Stretch"
             FontSize="16"
             PlaceholderText="Full file path (make sure you 'free up space' first)"
+            Text="C:\Users\yizzho\OneDrive - Microsoft\TEST\kitty.jpg"
             TextWrapping="Wrap" />
         <Grid
             Grid.Row="1"
@@ -36,16 +37,18 @@
             VerticalAlignment="Center"
             ColumnSpacing="24">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="0.5*" />
+                <ColumnDefinition Width="0.5*" />
             </Grid.ColumnDefinitions>
             <Button
                 x:Name="StartButton"
                 Grid.Column="0"
                 HorizontalAlignment="Left"
+                Background="{StaticResource AccentFillColorDefaultBrush}"
                 Click="StartButton_Click"
-                FontSize="16">
-                Hydrate file
+                FontSize="16"
+                Foreground="{StaticResource TextOnAccentFillColorPrimaryBrush}">
+                Start Hydration
             </Button>
             <Button
                 x:Name="CancelButton"
@@ -53,18 +56,58 @@
                 HorizontalAlignment="Right"
                 Click="CancelButton_Click"
                 FontSize="16">
-                Cancel hydration
+                Cancel Hydration
             </Button>
         </Grid>
 
-        <StackPanel
+        <Grid
             Grid.Row="2"
-            Padding="4"
-            HorizontalAlignment="Left"
+            HorizontalAlignment="Stretch"
             VerticalAlignment="Top"
-            Orientation="Vertical">
-            <TextBlock FontStyle="Italic" FontWeight="Bold">Output:</TextBlock>
-            <TextBlock Height="500" Text="{x:Bind OutputText, Mode=OneWay}" />
-        </StackPanel>
+            ColumnSpacing="24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.5*" />
+                <ColumnDefinition Width="0.5*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel
+                Grid.Column="0"
+                Padding="4"
+                HorizontalAlignment="Left"
+                BorderThickness="1"
+                Orientation="Vertical"
+                Spacing="4">
+                <TextBlock FontStyle="Italic" FontWeight="Bold">Output:</TextBlock>
+                <ScrollViewer
+                    Height="360"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
+                    VerticalContentAlignment="Center"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
+                    <TextBlock Text="{x:Bind OutputText, Mode=OneWay}" TextWrapping="NoWrap" />
+                </ScrollViewer>
+            </StackPanel>
+
+            <StackPanel
+                Grid.Column="1"
+                Padding="4"
+                HorizontalAlignment="Left"
+                BorderThickness="1"
+                Orientation="Vertical"
+                Spacing="4">
+                <TextBlock FontStyle="Italic" FontWeight="Bold">Output:</TextBlock>
+                <ScrollViewer
+                    Height="360"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="Right"
+                    VerticalContentAlignment="Center"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
+                    <TextBlock Text=" " TextWrapping="NoWrap" />
+                </ScrollViewer>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
