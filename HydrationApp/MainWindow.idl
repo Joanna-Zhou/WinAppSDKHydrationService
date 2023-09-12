@@ -3,10 +3,11 @@
 
 namespace HydrationApp
 {
+    [Microsoft.UI.Xaml.Data.Bindable]
     [default_interface]
-    runtimeclass MainWindow : Microsoft.UI.Xaml.Window
+    runtimeclass MainWindow : Microsoft.UI.Xaml.Window, Microsoft.UI.Xaml.Data.INotifyPropertyChanged
     {
         MainWindow();
-        Int32 MyProperty;
+        String OutputText;
     }
 }
