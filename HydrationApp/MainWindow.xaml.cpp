@@ -121,12 +121,12 @@ namespace winrt::HydrationApp::implementation
             }
 
             hydrationRequestVariables.isRequestSuccessful = true;
-            m_map.insert({ filePath, hydrationRequestVariables });
+            m_map[filePath] = hydrationRequestVariables;
             return true;
         }
 
         hydrationRequestVariables.isRequestSuccessful = false;
-        m_map.insert({ filePath, hydrationRequestVariables });
+        m_map[filePath] = hydrationRequestVariables;
         return false;
     }
 
