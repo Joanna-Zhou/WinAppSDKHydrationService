@@ -137,8 +137,8 @@ namespace winrt::HydrationApp::implementation
 
             auto [key, value] = *it;
 
-            //if (value.isRequestSuccessful)
-            //{
+            if (value.isRequestSuccessful)
+            {
                 if (CancelIoEx(value.PlaceholderHandle.get(), &(value.OverlappedHydration)))
                 {
                     PrintCancellationOutput(L"=== Cancelled successfully ===\n");
@@ -151,11 +151,11 @@ namespace winrt::HydrationApp::implementation
                     PrintCancellationOutput(winrt::to_hstring(errMsg));
                     PrintCancellationOutput(L"CancelIoEx returned false");
                 }
-            //}
-            //else
-            //{
-            //    PrintCancellationOutput(L"Hydration request wasn't successful so there's nothing to cancel");
-            //}
+            }
+            else
+            {
+                PrintCancellationOutput(L"Hydration request wasn't successful so there's nothing to cancel");
+            }
         }
         else
         {
