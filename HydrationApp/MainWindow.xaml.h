@@ -26,7 +26,7 @@ namespace winrt::HydrationApp::implementation
 
     private:
         Windows::Foundation::IAsyncAction HydrateFileAsync(std::wstring_view filePath);
-        void HydrateFile(std::wstring_view filePath);
+        bool HydrateFile(std::wstring_view filePath);
         void CancelHydration();
 
         inline void PrintHydrationOutput(winrt::hstring newLine) { HydrationOutputText(m_hydrationOutputText + L"\n" + newLine); }

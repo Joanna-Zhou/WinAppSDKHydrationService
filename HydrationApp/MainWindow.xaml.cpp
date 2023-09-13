@@ -48,27 +48,26 @@ namespace winrt::HydrationApp::implementation
 
     Windows::Foundation::IAsyncAction MainWindow::HydrateFileAsync(std::wstring_view filePath)
     {
-        PrintHydrationOutput(L"=== Starting ===\n");
+        PrintHydrationOutput(L"=== Try hydrate ===");
 
         auto keepThisAlive{ get_strong() };
 
         /* Resume on a background thread here since HydrateFile()
          * will block the calling thread (ie. it will cause UI to hang). */
-         // No need for get_strong because this is a free function
         co_await winrt::resume_background();
 
-        HydrateFile(filePath);
+        bool isRequestSuccessful = HydrateFile(filePath);
 
         co_await m_uiThread;
 
-        PrintHydrationOutput(m_isHydrated ? L"=== Successfully hydrated ===\n" : L"=== Not hydrated ===\n");
+        PrintHydrationOutput(isRequestSuccessful ? L"=== Successfully sent request ===\n" : L"=== Failed to send request ===\n");
 
         co_return;
     }
 
-    void MainWindow::HydrateFile(std::wstring_view filePath)
+    bool MainWindow::HydrateFile(std::wstring_view filePath)
     {
-        MyLog(__FUNCTION__": === Starting ===.\n");
+        MyLog(__FUNCTION__": === Starting ===\n");
 
         m_isHydrated = false;
 
@@ -81,18 +80,25 @@ namespace winrt::HydrationApp::implementation
             LPCTSTR errMsg = err.ErrorMessage();
 
             MyLog(__FUNCTION__": ", errMsg, "\n");
-            //PrintHydrationOutput(winrt::to_hstring(errMsg));
         }
         else
         {
-            //PrintHydrationOutput(L"Successfully got placeholder");
+            MyLog(__FUNCTION__": Sending request for placeholder\n");
             LARGE_INTEGER offset;
             offset.QuadPart = 0;
             LARGE_INTEGER lengthOfEntireFile;
             lengthOfEntireFile.QuadPart = -1;
 
-            //PrintHydrationOutput(L"Sending request");
             auto result = CfHydratePlaceholder(m_placeholder.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, &m_overlappedHydration);
+
+            if (!SUCCEEDED(result))
+            {
+                MyLog(__FUNCTION__": !!!Couldn't send result\n");
+                _com_error err(result);
+                LPCTSTR errMsg = err.ErrorMessage();
+                MyLog(__FUNCTION__": ", errMsg, "\n");
+                return false;
+            }
 
             // Initialize the overlapped event. This event is freed when the
             // hydration completes and has the same scope as m_overlappedHydration.
@@ -101,26 +107,20 @@ namespace winrt::HydrationApp::implementation
             {
                 ZeroMemory(&m_overlappedHydration, sizeof(OVERLAPPED));
                 m_overlappedHydration.hEvent = overlappedEvent.get();
-                //PrintHydrationOutput(L"Saving overlappedHydration");
+                MyLog(__FUNCTION__": Saving overlappedHydration\n");
             }
             else
             {
-                //PrintHydrationOutput(L"!!!Couldn't create overlappedHydration");
+                MyLog(__FUNCTION__": !!!Couldn't create overlappedHydration\n");
+                _com_error err(result);
+                LPCTSTR errMsg = err.ErrorMessage();
+                MyLog(__FUNCTION__": ", errMsg, "\n");
             }
 
-            _com_error err(result);
-            LPCTSTR errMsg = err.ErrorMessage();
-            MyLog(__FUNCTION__": ", errMsg, "\n");
-
-            if (SUCCEEDED(result))
-            {
-                //PrintHydrationOutput(L"=== Successful ===\n");
-                m_isHydrated = true;
-                return;
-            }
+            return true;
         }
 
-        return;
+        return false;
     }
 
     void MainWindow::CancelHydration()
@@ -138,8 +138,5 @@ namespace winrt::HydrationApp::implementation
             PrintCancellationOutput(winrt::to_hstring(errMsg));
             PrintCancellationOutput(L"=== Failed to cancel ===\n");
         }
-
-        //RETURN_LAST_ERROR_IF_FALSE(CancelIoEx(m_placeholder.get(), &m_overlappedHydration));
-
     }
 }
