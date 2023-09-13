@@ -27,11 +27,11 @@ namespace winrt::HydrationApp::implementation
 
     Windows::Foundation::IAsyncAction MainWindow::StartButton_Click(IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
-        StartButton().IsEnabled(false);
+        //StartButton().IsEnabled(false);
 
         co_await HydrateFileAsync(FilePath().Text());
 
-        StartButton().IsEnabled(true);
+        //StartButton().IsEnabled(true);
         //FilePath().Text(L"C:\\Users\\yizzho\\OneDrive - Microsoft\\TEST\\more_kermits.png");
 
         co_return;
@@ -73,7 +73,7 @@ namespace winrt::HydrationApp::implementation
 
         //winrt::handle placeholder(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
         //m_placeholderHandle.reset(CreateFile(filePath.data(), 0, FILE_SHARE_VALID_FLAGS, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr));
-        hydrationRequestVariables.PlaceholderHandle.reset(CreateFile(filePath.data(), 0, FILE_SHARE_VALID_FLAGS, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr));
+        hydrationRequestVariables.PlaceholderHandle.reset(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
 
         //if (m_placeholderHandle.get() == INVALID_HANDLE_VALUE)
         if (hydrationRequestVariables.PlaceholderHandle.get() == INVALID_HANDLE_VALUE)
@@ -91,8 +91,11 @@ namespace winrt::HydrationApp::implementation
             LARGE_INTEGER lengthOfEntireFile;
             lengthOfEntireFile.QuadPart = -1;
 
+            hydrationRequestVariables.isRequestSuccessful = true;
+            m_map[filePath] = hydrationRequestVariables;
+
             //auto result = CfHydratePlaceholder(m_placeholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, &m_overlappedHydration);
-            auto result = CfHydratePlaceholder(hydrationRequestVariables.PlaceholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, &m_overlappedHydration);
+            auto result = CfHydratePlaceholder(hydrationRequestVariables.PlaceholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, NULL);
             
             // Note: this SUCCEED check isn't very accurate, so we still resume code after this, it's just a reminder
             if (!SUCCEEDED(result))
@@ -109,7 +112,7 @@ namespace winrt::HydrationApp::implementation
             if (overlappedEvent.try_create(wil::EventOptions::ManualReset, nullptr))
             {
                 ZeroMemory(&m_overlappedHydration, sizeof(OVERLAPPED));
-                m_overlappedHydration.hEvent = overlappedEvent.get();
+                //m_overlappedHydration.hEvent = overlappedEvent.get();
                 MyLog(__FUNCTION__": Saving overlappedHydration\n");
             }
             else
@@ -120,8 +123,8 @@ namespace winrt::HydrationApp::implementation
                 MyLog(__FUNCTION__": ", errMsg, "\n");
             }
 
-            hydrationRequestVariables.isRequestSuccessful = true;
-            m_map[filePath] = hydrationRequestVariables;
+            //hydrationRequestVariables.isRequestSuccessful = true;
+            //m_map[filePath] = hydrationRequestVariables;
             return true;
         }
 
@@ -144,7 +147,7 @@ namespace winrt::HydrationApp::implementation
             if (value.isRequestSuccessful)
             {
                 //if (CancelIoEx(m_placeholder.get(), &m_overlappedHydration))
-                if (CancelIoEx(value.PlaceholderHandle.get(), &m_overlappedHydration))
+                if (CancelIoEx(value.PlaceholderHandle.get(), NULL))
                 {
                     PrintCancellationOutput(L"=== Cancelled successfully ===\n");
                     return;
