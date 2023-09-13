@@ -105,7 +105,7 @@ namespace winrt::HydrationApp::implementation
                 if (overlappedEvent.try_create(wil::EventOptions::ManualReset, nullptr))
                 {
                     ZeroMemory(&(hydrationRequestVariables.OverlappedHydration), sizeof(OVERLAPPED));
-                    //hydrationRequestVariables.OverlappedHydration.hEvent = overlappedEvent.get();
+                    hydrationRequestVariables.OverlappedHydration.hEvent = overlappedEvent.get();
                     MyLog(__FUNCTION__": Saving overlappedHydration\n");
                 }
                 else
