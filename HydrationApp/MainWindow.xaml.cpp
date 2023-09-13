@@ -37,7 +37,7 @@ namespace winrt::HydrationApp::implementation
         co_return;
     }
 
-    void MainWindow::CancelButton_Click(IInsfpectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
+    void MainWindow::CancelButton_Click(IInspectable const&, winrt::Microsoft::UI::Xaml::RoutedEventArgs const&)
     {
         CancelButton().IsEnabled(false);
 
