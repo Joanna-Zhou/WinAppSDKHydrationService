@@ -135,11 +135,11 @@ namespace winrt::HydrationApp::implementation
         {
             PrintCancellationOutput(L"Found hydration variables for filepath");
 
-            const auto& [key, value] = *it;
+            auto [key, value] = *it;
 
-            if (value.isRequestSuccessful)
-            {
-                if (CancelIoEx(m_map[filePath].PlaceholderHandle.get(), &(m_map[filePath].OverlappedHydration)))
+            //if (value.isRequestSuccessful)
+            //{
+                if (CancelIoEx(value.PlaceholderHandle.get(), &(value.OverlappedHydration)))
                 {
                     PrintCancellationOutput(L"=== Cancelled successfully ===\n");
                     return;
@@ -151,11 +151,11 @@ namespace winrt::HydrationApp::implementation
                     PrintCancellationOutput(winrt::to_hstring(errMsg));
                     PrintCancellationOutput(L"CancelIoEx returned false");
                 }
-            }
-            else
-            {
-                PrintCancellationOutput(L"Hydration request wasn't successful so there's nothing to cancel");
-            }
+            //}
+            //else
+            //{
+            //    PrintCancellationOutput(L"Hydration request wasn't successful so there's nothing to cancel");
+            //}
         }
         else
         {

@@ -36,7 +36,7 @@ namespace winrt::HydrationApp::implementation
         struct HydrationRequestVariables
         {
             wil::shared_hfile PlaceholderHandle{};
-            OVERLAPPED OverlappedHydration = {};
+            OVERLAPPED OverlappedHydration{};
             bool isRequestSuccessful = false;
         };
 
