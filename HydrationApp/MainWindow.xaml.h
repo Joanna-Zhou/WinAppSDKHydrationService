@@ -10,6 +10,13 @@ namespace winrt::HydrationApp::implementation
 {
     struct MainWindow : MainWindowT<MainWindow>
     {
+        struct HydrationRequestVariables
+        {
+            wil::unique_hfile PlaceholderHandle;
+            OVERLAPPED OverlappedHydration = {};
+            bool isRequestSuccessful;
+        };
+
         MainWindow();
 
         winrt::hstring HydrationOutputText() { return m_hydrationOutputText; };
@@ -27,17 +34,17 @@ namespace winrt::HydrationApp::implementation
     private:
         Windows::Foundation::IAsyncAction HydrateFileAsync(std::wstring_view filePath);
         bool HydrateFile(std::wstring_view filePath);
-        void CancelHydration();
+        void CancelHydration(std::wstring_view filePath);
 
         inline void PrintHydrationOutput(winrt::hstring newLine) { HydrationOutputText(m_hydrationOutputText + L"\n" + newLine); }
         inline void PrintCancellationOutput(winrt::hstring newLine) { CancellationOutputText(m_cancellationOutputText + L"\n" + newLine); }
         
+        std::map<std::wstring_view, HydrationRequestVariables> m_map;
+
         winrt::hstring m_hydrationOutputText = L"";
         winrt::hstring m_cancellationOutputText = L"";
         
         bool m_isHydrated = false;
-        wil::unique_hfile m_placeholder;
-        OVERLAPPED m_overlappedHydration = {};
 
         winrt::event<Microsoft::UI::Xaml::Data::PropertyChangedEventHandler> m_propertyChanged;
 

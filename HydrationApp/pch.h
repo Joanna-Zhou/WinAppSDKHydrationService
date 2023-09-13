@@ -27,6 +27,7 @@
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <wil/cppwinrt_helpers.h>
 
+#include <map>
 //#include <wil/resource.h>
 
 extern __inline int __cdecl MyLog(LPCSTR FmtString, ...)
