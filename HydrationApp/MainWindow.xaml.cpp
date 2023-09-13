@@ -29,7 +29,6 @@ namespace winrt::HydrationApp::implementation
     {
         StartButton().IsEnabled(false);
 
-        //HydrateFile(FilePath().Text());
         co_await HydrateFileAsync(FilePath().Text());
 
         StartButton().IsEnabled(true);
