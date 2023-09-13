@@ -5,18 +5,12 @@
 
 #include "MainWindow.g.h"
 #include <wil/resource.h>
+#include <map>
 
 namespace winrt::HydrationApp::implementation
 {
     struct MainWindow : MainWindowT<MainWindow>
     {
-        struct HydrationRequestVariables
-        {
-            wil::unique_hfile PlaceholderHandle;
-            OVERLAPPED OverlappedHydration = {};
-            bool isRequestSuccessful;
-        };
-
         MainWindow();
 
         winrt::hstring HydrationOutputText() { return m_hydrationOutputText; };
@@ -38,7 +32,14 @@ namespace winrt::HydrationApp::implementation
 
         inline void PrintHydrationOutput(winrt::hstring newLine) { HydrationOutputText(m_hydrationOutputText + L"\n" + newLine); }
         inline void PrintCancellationOutput(winrt::hstring newLine) { CancellationOutputText(m_cancellationOutputText + L"\n" + newLine); }
-        
+
+        struct HydrationRequestVariables
+        {
+            wil::shared_hfile PlaceholderHandle{};
+            OVERLAPPED OverlappedHydration = {};
+            bool isRequestSuccessful = false;
+        };
+
         std::map<std::wstring_view, HydrationRequestVariables> m_map;
 
         winrt::hstring m_hydrationOutputText = L"";

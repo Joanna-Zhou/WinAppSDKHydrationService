@@ -106,7 +106,7 @@ namespace winrt::HydrationApp::implementation
                 if (overlappedEvent.try_create(wil::EventOptions::ManualReset, nullptr))
                 {
                     ZeroMemory(&(hydrationRequestVariables.OverlappedHydration), sizeof(OVERLAPPED));
-                    hydrationRequestVariables.OverlappedHydration.hEvent = overlappedEvent.get();
+                    //hydrationRequestVariables.OverlappedHydration.hEvent = overlappedEvent.get();
                     MyLog(__FUNCTION__": Saving overlappedHydration\n");
                 }
                 else
@@ -123,8 +123,7 @@ namespace winrt::HydrationApp::implementation
         }
 
         hydrationRequestVariables.isRequestSuccessful = false;
-        //m_map.insert(filePath, hydrationRequestVariables);
-        //m_map.insert(std::make_pair(filePath, hydrationRequestVariables));
+        m_map.insert({ filePath, hydrationRequestVariables });
         return false;
     }
 
@@ -133,15 +132,15 @@ namespace winrt::HydrationApp::implementation
         PrintCancellationOutput(L"=== Starting ===");
 
         // Look for the filepath in the dictionary
-        auto found = m_map.find(filePath);
-        if (found != m_map.end())
+        if (auto it{ m_map.find(filePath)}; it != std::end(m_map))
         {
-            auto hydrationRequestVariables = found->second;
             PrintCancellationOutput(L"Found hydration variables for filepath");
 
-            if (hydrationRequestVariables.isRequestSuccessful)
+            const auto& [key, value] = *it;
+
+            if (value.isRequestSuccessful)
             {
-                if (CancelIoEx(hydrationRequestVariables.PlaceholderHandle.get(), &(hydrationRequestVariables.OverlappedHydration)))
+                if (CancelIoEx(m_map[filePath].PlaceholderHandle.get(), &(m_map[filePath].OverlappedHydration)))
                 {
                     PrintCancellationOutput(L"=== Cancelled successfully ===\n");
                     return;
