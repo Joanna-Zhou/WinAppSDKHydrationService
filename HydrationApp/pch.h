@@ -37,6 +37,8 @@ extern __inline int __cdecl MyLog(LPCSTR FmtString, ...)
     char OutputString[10240] = { 0 };
 
     int i = _vsnprintf_s(OutputString, 10239, FmtString, arg_list);
+    OutputDebugStringA("===============================================");
     OutputDebugStringA(OutputString);
+    OutputDebugStringA("===============================================");
     return i;
 }

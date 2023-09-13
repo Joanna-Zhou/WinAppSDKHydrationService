@@ -32,6 +32,7 @@ namespace winrt::HydrationApp::implementation
         co_await HydrateFileAsync(FilePath().Text());
 
         StartButton().IsEnabled(true);
+        //FilePath().Text(L"C:\\Users\\yizzho\\OneDrive - Microsoft\\TEST\\more_kermits.png");
 
         co_return;
     }
@@ -71,8 +72,10 @@ namespace winrt::HydrationApp::implementation
         HydrationRequestVariables hydrationRequestVariables;
 
         //winrt::handle placeholder(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
+        //m_placeholderHandle.reset(CreateFile(filePath.data(), 0, FILE_SHARE_VALID_FLAGS, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr));
         hydrationRequestVariables.PlaceholderHandle.reset(CreateFile(filePath.data(), 0, FILE_SHARE_VALID_FLAGS, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr));
 
+        //if (m_placeholderHandle.get() == INVALID_HANDLE_VALUE)
         if (hydrationRequestVariables.PlaceholderHandle.get() == INVALID_HANDLE_VALUE)
         {
             _com_error err = GetLastError();
@@ -88,37 +91,38 @@ namespace winrt::HydrationApp::implementation
             LARGE_INTEGER lengthOfEntireFile;
             lengthOfEntireFile.QuadPart = -1;
 
-            auto result = CfHydratePlaceholder(hydrationRequestVariables.PlaceholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, &(hydrationRequestVariables.OverlappedHydration));
-
+            //auto result = CfHydratePlaceholder(m_placeholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, &m_overlappedHydration);
+            auto result = CfHydratePlaceholder(hydrationRequestVariables.PlaceholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, &m_overlappedHydration);
+            
+            // Note: this SUCCEED check isn't very accurate, so we still resume code after this, it's just a reminder
             if (!SUCCEEDED(result))
             {
-                MyLog(__FUNCTION__": !!!Couldn't send result\n");
+                MyLog(__FUNCTION__": !!!SUCCEEDED(result) returns false\n");
                 _com_error err(result);
                 LPCTSTR errMsg = err.ErrorMessage();
                 MyLog(__FUNCTION__": ", errMsg, "\n");
             }
+
+            // Initialize the overlapped event. This event is freed when the
+            // hydration completes and has the same scope as m_overlappedHydration.
+            wil::unique_event_nothrow overlappedEvent;
+            if (overlappedEvent.try_create(wil::EventOptions::ManualReset, nullptr))
+            {
+                ZeroMemory(&m_overlappedHydration, sizeof(OVERLAPPED));
+                m_overlappedHydration.hEvent = overlappedEvent.get();
+                MyLog(__FUNCTION__": Saving overlappedHydration\n");
+            }
             else
             {
-                // Initialize the overlapped event. This event is freed when the
-                // hydration completes and has the same scope as m_overlappedHydration.
-                wil::unique_event_nothrow overlappedEvent;
-                if (overlappedEvent.try_create(wil::EventOptions::ManualReset, nullptr))
-                {
-                    ZeroMemory(&(hydrationRequestVariables.OverlappedHydration), sizeof(OVERLAPPED));
-                    hydrationRequestVariables.OverlappedHydration.hEvent = overlappedEvent.get();
-                    MyLog(__FUNCTION__": Saving overlappedHydration\n");
-                }
-                else
-                {
-                    MyLog(__FUNCTION__": !!!Couldn't create overlappedHydration\n");
-                    _com_error err(result);
-                    LPCTSTR errMsg = err.ErrorMessage();
-                    MyLog(__FUNCTION__": ", errMsg, "\n");
-                }
-
-                hydrationRequestVariables.isRequestSuccessful = true;
-                return true;
+                MyLog(__FUNCTION__": !!!Couldn't create overlappedHydration\n");
+                _com_error err(result);
+                LPCTSTR errMsg = err.ErrorMessage();
+                MyLog(__FUNCTION__": ", errMsg, "\n");
             }
+
+            hydrationRequestVariables.isRequestSuccessful = true;
+            m_map.insert({ filePath, hydrationRequestVariables });
+            return true;
         }
 
         hydrationRequestVariables.isRequestSuccessful = false;
@@ -131,7 +135,7 @@ namespace winrt::HydrationApp::implementation
         PrintCancellationOutput(L"=== Starting ===");
 
         // Look for the filepath in the dictionary
-        if (auto it{ m_map.find(filePath)}; it != std::end(m_map))
+        if (auto it{ m_map.find(filePath) }; it != std::end(m_map))
         {
             PrintCancellationOutput(L"Found hydration variables for filepath");
 
@@ -139,7 +143,8 @@ namespace winrt::HydrationApp::implementation
 
             if (value.isRequestSuccessful)
             {
-                if (CancelIoEx(value.PlaceholderHandle.get(), &(value.OverlappedHydration)))
+                //if (CancelIoEx(m_placeholder.get(), &m_overlappedHydration))
+                if (CancelIoEx(value.PlaceholderHandle.get(), &m_overlappedHydration))
                 {
                     PrintCancellationOutput(L"=== Cancelled successfully ===\n");
                     return;
@@ -161,7 +166,7 @@ namespace winrt::HydrationApp::implementation
         {
             PrintCancellationOutput(L"Cannot find hydration variables for filepath");
         }
-        
+
         PrintCancellationOutput(L"=== Failed to cancel ===\n");
     }
 }

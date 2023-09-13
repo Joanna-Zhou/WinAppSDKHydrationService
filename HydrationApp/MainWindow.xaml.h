@@ -36,17 +36,16 @@ namespace winrt::HydrationApp::implementation
         struct HydrationRequestVariables
         {
             wil::shared_hfile PlaceholderHandle{};
-            OVERLAPPED OverlappedHydration{};
             bool isRequestSuccessful = false;
         };
 
         std::map<std::wstring_view, HydrationRequestVariables> m_map;
+        OVERLAPPED m_overlappedHydration{};
+        wil::unique_hfile m_placeholder;
 
         winrt::hstring m_hydrationOutputText = L"";
         winrt::hstring m_cancellationOutputText = L"";
         
-        bool m_isHydrated = false;
-
         winrt::event<Microsoft::UI::Xaml::Data::PropertyChangedEventHandler> m_propertyChanged;
 
         winrt::apartment_context m_uiThread;

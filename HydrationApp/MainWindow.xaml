@@ -29,7 +29,7 @@
             HorizontalAlignment="Stretch"
             FontSize="16"
             PlaceholderText="Full file path (make sure you 'free up space' first)"
-            Text="C:\Users\yizzho\OneDrive - Microsoft\TEST\20221214093613.jpg"
+            Text="C:\Users\yizzho\OneDrive - Microsoft\TEST\more_kermits.png"
             TextWrapping="Wrap" />
         <Grid
             Grid.Row="1"
