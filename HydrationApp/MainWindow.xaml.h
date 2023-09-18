@@ -35,7 +35,7 @@ namespace winrt::HydrationApp::implementation
 
         struct HydrationRequestVariables
         {
-            wil::shared_hfile PlaceholderHandle{};
+            std::shared_ptr<winrt::handle> PlaceholderHandle{};
             bool isRequestSuccessful = false;
         };
 

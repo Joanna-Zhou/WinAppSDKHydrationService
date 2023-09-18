@@ -73,10 +73,10 @@ namespace winrt::HydrationApp::implementation
 
         //winrt::handle placeholder(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
         //m_placeholderHandle.reset(CreateFile(filePath.data(), 0, FILE_SHARE_VALID_FLAGS, nullptr, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr));
-        hydrationRequestVariables.PlaceholderHandle.reset(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
+        hydrationRequestVariables.PlaceholderHandle = std::make_shared<winrt::handle>(CreateFile(filePath.data(), 0, FILE_READ_DATA, nullptr, OPEN_EXISTING, 0, nullptr));
 
         //if (m_placeholderHandle.get() == INVALID_HANDLE_VALUE)
-        if (hydrationRequestVariables.PlaceholderHandle.get() == INVALID_HANDLE_VALUE)
+        if (hydrationRequestVariables.PlaceholderHandle.get()->get() == INVALID_HANDLE_VALUE)
         {
             _com_error err = GetLastError();
             LPCTSTR errMsg = err.ErrorMessage();
@@ -95,7 +95,7 @@ namespace winrt::HydrationApp::implementation
             m_map[filePath] = hydrationRequestVariables;
 
             //auto result = CfHydratePlaceholder(m_placeholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, &m_overlappedHydration);
-            auto result = CfHydratePlaceholder(hydrationRequestVariables.PlaceholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, NULL);
+            auto result = CfHydratePlaceholder(hydrationRequestVariables.PlaceholderHandle.get()->get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, NULL);
             
             // Note: this SUCCEED check isn't very accurate, so we still resume code after this, it's just a reminder
             if (!SUCCEEDED(result))
@@ -147,7 +147,7 @@ namespace winrt::HydrationApp::implementation
             if (value.isRequestSuccessful)
             {
                 //if (CancelIoEx(m_placeholder.get(), &m_overlappedHydration))
-                if (CancelIoEx(value.PlaceholderHandle.get(), NULL))
+                if (CancelIoEx(value.PlaceholderHandle.get()->get(), NULL))
                 {
                     PrintCancellationOutput(L"=== Cancelled successfully ===\n");
                     return;
