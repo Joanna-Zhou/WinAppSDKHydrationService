@@ -96,6 +96,7 @@ namespace winrt::HydrationApp::implementation
 
             //auto result = CfHydratePlaceholder(m_placeholderHandle.get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, &m_overlappedHydration);
             auto result = CfHydratePlaceholder(hydrationRequestVariables.PlaceholderHandle.get()->get(), offset, lengthOfEntireFile, CF_HYDRATE_FLAG_NONE, NULL);
+            hydrationRequestVariables.PlaceholderHandle.get()->close();
             
             // Note: this SUCCEED check isn't very accurate, so we still resume code after this, it's just a reminder
             if (!SUCCEEDED(result))
